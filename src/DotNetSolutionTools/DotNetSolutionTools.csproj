@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\dotnet.Standard\dotnet.Standard.csproj" />
+    <ProjectReference Include="..\Microsoft.DotNet.Cli.Sln.Internal.Standard\Microsoft.DotNet.Cli.Sln.Internal.Standard.csproj" />
+  </ItemGroup>
+
+</Project>
