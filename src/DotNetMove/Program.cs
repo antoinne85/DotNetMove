@@ -1,7 +1,6 @@
 ﻿using CommandLine;
 using DotNetSolutionTools;
 using Microsoft.DotNet.Cli.Sln.Internal;
-using Microsoft.DotNet.Tools.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -50,21 +49,12 @@ namespace DotNetMove
 
             Func<IDotNetProjectInstance, bool> func = CheckByName;
 
-            if (targetProject.EndsWith(".csproj"))
+            if (KnownProjectFileExtensions.IsKnownProjectFile(targetProject))
             {
                 func = CheckByPath;
             }
 
             return solution.AllProjects.SingleOrDefault(func);
-        }
-
-        private static SlnProject FindProjectInSolution(SlnFile solution, string targetProject)
-        {
-            bool CheckByPath(SlnProject proj) => Path.GetFileName(proj.GetAbsolutePathToProjectFile()) == targetProject;
-            bool CheckByName(SlnProject proj) => proj.Name == targetProject;
-
-            var func = targetProject.EndsWith(".csproj") ? CheckByPath : (Func<SlnProject, bool>)CheckByName;
-            return solution.Projects.FirstOrDefault(func);
         }
 
         private static IReadOnlyList<SlnFile> FindSolutions(string solutionPath, bool findSolutions)
@@ -89,22 +79,21 @@ namespace DotNetMove
 
         private static int MoveOnDisk(DiskMoveOptions options)
         {
-            var csprojFullPath = FindCsprojFullPath(options.Project);
-            var directoryContainingCsproj = Path.GetDirectoryName(csprojFullPath);
-            var lastFolderInDirectoryContainingCsproj =
-                directoryContainingCsproj.Split(Path.DirectorySeparatorChar).Last();
+            var projectFileFullPath = FindProjectFileFullPath(options.Project);
+            var directoryContainingProjectFile = Path.GetDirectoryName(projectFileFullPath);
+            var lastFolderInDirectoryContainingProjectFile =
+                directoryContainingProjectFile.Split(Path.DirectorySeparatorChar).Last();
             var absoluteDirectoryToMoveTo =
-                Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), options.Destination, lastFolderInDirectoryContainingCsproj));
-            var newCsprojFullPath = Path.Combine(absoluteDirectoryToMoveTo, Path.GetFileName(csprojFullPath));
+                Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), options.Destination, lastFolderInDirectoryContainingProjectFile));
+            var newProjectFileFullPath = Path.Combine(absoluteDirectoryToMoveTo, Path.GetFileName(projectFileFullPath));
 
-            if (string.IsNullOrWhiteSpace(csprojFullPath))
+            if (string.IsNullOrWhiteSpace(projectFileFullPath))
             {
                 return -1;
             }
 
             var solutions = FindSolutions(options.SolutionPath, options.FindSolutions);
 
-            solutions = solutions.Where(s => Path.GetFileName(s.FullPath) == "Kubical.sln").ToList();
             var newSolutions = solutions.Select(s => new DotNetSolution(s.FullPath)).ToList();
 
             foreach (var solution in newSolutions)
@@ -116,14 +105,14 @@ namespace DotNetMove
                     continue;
                 }
 
-                targetProject.UpdateProjectAbsolutePath(newCsprojFullPath);
+                targetProject.UpdateProjectAbsolutePath(newProjectFileFullPath);
 
                 solution.Save();
             }
 
             Directory.CreateDirectory(absoluteDirectoryToMoveTo);
             DeleteDirectoryIfEmpty(absoluteDirectoryToMoveTo);
-            Directory.Move(directoryContainingCsproj, absoluteDirectoryToMoveTo);
+            Directory.Move(directoryContainingProjectFile, absoluteDirectoryToMoveTo);
 
             return 0;
         }
@@ -142,12 +131,18 @@ namespace DotNetMove
             }
         }
 
-        private static string FindCsprojFullPath(string targetProject)
+        private static string FindProjectFileFullPath(string targetProject)
         {
             var pwd = Directory.GetCurrentDirectory();
+            var extensionsToSearch = new List<string>();
 
-            if (targetProject.EndsWith(".csproj"))
+            if (KnownProjectFileExtensions.IsKnownProjectFile(targetProject))
             {
+                extensionsToSearch = new List<string>
+                {
+                    Path.GetExtension(targetProject).Replace(".", string.Empty)
+                };
+
                 if (Path.IsPathRooted(targetProject))
                 {
                     return targetProject;
@@ -157,11 +152,26 @@ namespace DotNetMove
                     targetProject = Path.GetFileNameWithoutExtension(targetProject);
                 }
             }
+            else
+            {
+                extensionsToSearch = KnownProjectFileExtensions.All.ToList();
+            }
 
-            var csprojFiles = Directory.EnumerateFiles(pwd, "*.csproj", SearchOption.AllDirectories).ToList();
-            csprojFiles = csprojFiles.Where(f => Path.GetFileNameWithoutExtension(f) == targetProject).ToList();
+            foreach (var extension in extensionsToSearch)
+            {
+                var searchFilter = $"*.{extension}";
+                var projectFiles = Directory.EnumerateFiles(pwd, searchFilter, SearchOption.AllDirectories).ToList();
+                projectFiles = projectFiles.Where(f => Path.GetFileNameWithoutExtension(f) == targetProject).ToList();
 
-            return csprojFiles.SingleOrDefault();
+                var match = projectFiles.SingleOrDefault();
+                if (match != null)
+                {
+                    return match;
+                }
+
+            }
+
+            return null;
         }
     }
 

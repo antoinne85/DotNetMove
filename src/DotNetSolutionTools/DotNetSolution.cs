@@ -2,6 +2,7 @@
 using Microsoft.DotNet.Cli.Sln.Internal;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Microsoft.DotNet.Tools.Common;
 
@@ -18,10 +19,27 @@ namespace DotNetSolutionTools
     {
         private SlnFile SlnFile { get; }
 
-        public DotNetSolution(string solutionFileAbsolutePath)
+        public static DotNetSolution CreateIfNotExists(string solutionFileAbsolutePath)
         {
-            SlnFile = SlnFile.Read(solutionFileAbsolutePath);
-            _allProjects = SlnFile.Projects.Select<SlnProject,IDotNetProjectInstance>(p =>
+            if (File.Exists(solutionFileAbsolutePath))
+            {
+                throw new Exception("The file already exists.");
+            }
+
+            var file = new SlnFile();
+            file.FullPath = solutionFileAbsolutePath;
+            file.FormatVersion = "12.00";
+            file.VisualStudioVersion = "15.0.27130.2036";
+            file.MinimumVisualStudioVersion = "10.0.40219.1";
+            file.Write();
+
+            return new DotNetSolution(file);
+        }
+
+        public DotNetSolution(SlnFile file)
+        {
+            SlnFile = file;
+            _allProjects = SlnFile.Projects.Select<SlnProject, IDotNetProjectInstance>(p =>
             {
                 var projectInstance = new DotNetProjectInstance(this, p);
 
@@ -32,6 +50,11 @@ namespace DotNetSolutionTools
 
                 return projectInstance;
             }).ToList();
+        }
+
+        public DotNetSolution(string solutionFileAbsolutePath) : this(SlnFile.Read(solutionFileAbsolutePath))
+        {
+           
         }
 
         private readonly List<IDotNetProjectInstance> _allProjects;
@@ -61,7 +84,8 @@ namespace DotNetSolutionTools
 
         public IDotNetProjectInstance GetProjectInstanceForProjectFile(string absolutePath)
         {
-            return AllProjects.SingleOrDefault(p => p.ProjectFileAbsolutePath == absolutePath);
+            var matches = AllProjects.Where(p => string.Compare(p.ProjectFileAbsolutePath, absolutePath, StringComparison.OrdinalIgnoreCase) == 0);
+            return matches.SingleOrDefault();
         }
 
         public IEnumerable<IDotNetProjectInstance> GetProjectsUnderSolutionFolder(IDotNetSolutionFolder solutionFolder)
@@ -200,6 +224,23 @@ namespace DotNetSolutionTools
             _allProjects.Add(solutionFolder);
 
             return solutionFolder;
+        }
+
+        public IDotNetProjectInstance AddExistingProject(string absolutePathToProjectFile)
+        {
+            var projectType = ProjectTypeSniffer.SniffFromProjectFile(absolutePathToProjectFile);
+            var typeGuid = KnownProjectTypeGuids.FromProjectType(projectType);
+            var newProject = new SlnProject
+            {
+                Id = Guid.NewGuid().ToId(),
+                TypeGuid = typeGuid.ToId(),
+                Name = Path.GetFileNameWithoutExtension(absolutePathToProjectFile),
+                FilePath = absolutePathToProjectFile
+            };
+            SlnFile.Projects.Add(newProject);
+            var projectInstance = new DotNetProjectInstance(this, newProject);
+            _allProjects.Add(projectInstance);
+            return projectInstance;
         }
     }
 }

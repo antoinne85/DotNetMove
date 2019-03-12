@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
 namespace DotNetSolutionTools
 {
+    [DebuggerDisplay("{HierarchyName}")]
     public class DotNetSolutionFolder : IDotNetSolutionFolder
     {
         private readonly IDotNetProjectInstance _projectInstance;
@@ -62,6 +65,9 @@ namespace DotNetSolutionTools
         public IDotNetSolutionFolder ParentFolder => Solution.FindParentSolutionFolder(this);
 
         public ProjectType ProjectType => _projectInstance.ProjectType;
+
+        public IEnumerable<string> AbsolutePathsToProjectReferences => ImmutableList<string>.Empty;
+
         public void UpdateProjectAbsolutePath(string newAbsolutePath)
         {
             throw new NotSupportedException("Solution folders do not have a path to update.");

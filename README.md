@@ -46,5 +46,5 @@ Executing `dotnet move`, `dotnet move solution` or `dotnet move disk` with no ar
 
 ### Limitations
 This current release has several limitations:
-* It can only move `.csproj` files.
+* It can only move `.csproj` projects.
 * It will not function correctly if your project reference paths and paths on disk have casing differences.

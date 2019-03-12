@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <Version>0.1.0</Version>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>dotnet-cobble</ToolCommandName>
+    <Description>A dotnet tool for creating new solution files from projects in a folder, with or without their project dependencies.</Description>
+    <Copyright>https://github.com/antoinne85/DotNetMove/blob/master/LICENSE</Copyright>
+    <PackageProjectUrl>https://github.com/antoinne85/DotNetMove</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/antoinne85/DotNetMove/blob/master/LICENSE</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/antoinne85/DotNetMove</RepositoryUrl>
+    <PackageTags>l, create solution</PackageTags>
+    <PackageReleaseNotes>Run `dotnet cobble` for help.</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetSolutionTools\DotNetSolutionTools.csproj" />
+  </ItemGroup>
+
+</Project>

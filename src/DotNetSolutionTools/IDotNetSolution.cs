@@ -16,5 +16,6 @@ namespace DotNetSolutionTools
         void UpdateProjectAbsolutePath(IDotNetProjectInstance projectInstance, string absolutePath);
         IEnumerable<IDotNetProjectInstance> FindProjectsThatReference(IDotNetProjectInstance projectInstance);
         void Save();
+        IDotNetProjectInstance AddExistingProject(string absolutePathToProjectFile);
     }
 }

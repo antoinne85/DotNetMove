@@ -59,10 +59,17 @@ Executing `dotnet move`, `dotnet move solution` or `dotnet move disk` with no ar
     <PackageReleaseNotes>This first release has several limitations:
 * It can only move `.csproj` files.
 * It will not function correctly if your project reference paths and paths on disk have casing differences.</PackageReleaseNotes>
-    <AssemblyVersion>0.1.0.0</AssemblyVersion>
-    <FileVersion>0.1.0.0</FileVersion>
-    <Version>0.1.0.0</Version>
+    <AssemblyVersion>1.5.0.0</AssemblyVersion>
+    <FileVersion>1.5.0.0</FileVersion>
+    <Version>1.6.1</Version>
     <NeutralLanguage></NeutralLanguage>
+    <AssemblyName>dotnet-move</AssemblyName>
+    <PackageId>DotNetMove</PackageId>
+    <Product>DotNetMove</Product>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <WarningLevel>0</WarningLevel>
   </PropertyGroup>
 
    <ItemGroup>

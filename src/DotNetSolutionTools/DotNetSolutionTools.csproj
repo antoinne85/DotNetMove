@@ -2,6 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Anthony Compton</Authors>
+    <Version>0.1.0</Version>
+    <Description>A library for assisting with manipulating .NET solution and project files.</Description>
+    <PackageLicenseUrl>https://github.com/antoinne85/DotNetMove/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/antoinne85/DotNetMove</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/antoinne85/DotNetMove</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>sln,csproj</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>

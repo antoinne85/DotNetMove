@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace DotNetSolutionTools
 {
@@ -109,6 +111,26 @@ namespace DotNetSolutionTools
             return cachedResult;
         }
 
+        public static ProjectType SniffFromFilename(string absolutePathOrFilename)
+        {
+            var language = SniffLanguageFromExtension(absolutePathOrFilename);
+            return new ProjectType(FrameworkType.Unknown, language, ProjectClass.Buildable);
+        }
+
+        public static ProjectLanguage SniffLanguageFromExtension(string absolutePathOrFilename)
+        {
+            var filename = Path.GetFileName(absolutePathOrFilename);
+            var ext = Path.GetExtension(filename);
+
+            switch (ext)
+            {
+                case ".csproj": return ProjectLanguage.CSharp;
+                case ".fsproj": return ProjectLanguage.FSharp;
+                case ".vbproj": return ProjectLanguage.VisualBasic;
+                default: return ProjectLanguage.Unknown;
+            }
+        }
+
         private static IImmutableSet<string> BuildSet(params Guid[] ids)
         {
             var set = new HashSet<string>();
@@ -127,6 +149,44 @@ namespace DotNetSolutionTools
             }
 
             return ImmutableHashSet<string>.Empty.Union(set);
+        }
+
+        public static ProjectType SniffFromProjectFile(string absolutePathToProjectFile)
+        {
+            var language = SniffLanguageFromExtension(absolutePathToProjectFile);
+            var projectFileContents = File.ReadAllText(absolutePathToProjectFile);
+            var startIndex = projectFileContents.IndexOf("TargetFramework");
+            var endIndex = projectFileContents.IndexOf("/TargetFramework");
+            var length = endIndex - startIndex;
+            var content = projectFileContents.Substring(startIndex, length);
+            startIndex = content.IndexOf(">");
+            endIndex = content.IndexOf("<");
+            length = endIndex - startIndex;
+            content = content.Substring(startIndex, length);
+
+            var standardRegex = new Regex(@"netstandard\d+\.\d+");
+            var fullFrameworkRegex = new Regex(@"net\d+");
+            var netCoreRegex = new Regex(@"netcoreapp\d+\.\d+");
+            var hasStandard = standardRegex.IsMatch(content);
+            var hasFullFramework = fullFrameworkRegex.IsMatch(content);
+            var hasNetCore = netCoreRegex.IsMatch(content);
+
+            var @class = ProjectClass.Buildable;
+            var framework = FrameworkType.Unknown;
+            if (hasStandard)
+            {
+                framework = FrameworkType.DotNetStandard;
+            }
+            else if (hasNetCore)
+            {
+                framework = FrameworkType.DotNetCore;
+            }
+            else if (hasFullFramework)
+            {
+                framework = FrameworkType.DotNet;
+            }
+
+            return new ProjectType(framework, language, @class);
         }
     }
 }

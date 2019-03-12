@@ -11,7 +11,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.DotNet.Cli.Utils.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet.Standard", "dotnet.Standard\dotnet.Standard.csproj", "{264D9965-E8EE-403B-9566-2ACA89C46744}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetSolutionTools", "DotNetSolutionTools\DotNetSolutionTools.csproj", "{C061AD43-921B-4510-AD7D-A6B221A96241}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetSolutionTools", "DotNetSolutionTools\DotNetSolutionTools.csproj", "{C061AD43-921B-4510-AD7D-A6B221A96241}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetCobble", "DotNetCobble\DotNetCobble.csproj", "{E7EA9DCD-EC7B-407F-A429-F0C8A140BA66}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetComply", "DotNetComply\DotNetComply.csproj", "{511A01CB-15A1-4AA9-A4D0-098FA7D71694}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +43,14 @@ Global
 		{C061AD43-921B-4510-AD7D-A6B221A96241}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C061AD43-921B-4510-AD7D-A6B221A96241}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C061AD43-921B-4510-AD7D-A6B221A96241}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7EA9DCD-EC7B-407F-A429-F0C8A140BA66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7EA9DCD-EC7B-407F-A429-F0C8A140BA66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7EA9DCD-EC7B-407F-A429-F0C8A140BA66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7EA9DCD-EC7B-407F-A429-F0C8A140BA66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{511A01CB-15A1-4AA9-A4D0-098FA7D71694}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{511A01CB-15A1-4AA9-A4D0-098FA7D71694}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{511A01CB-15A1-4AA9-A4D0-098FA7D71694}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{511A01CB-15A1-4AA9-A4D0-098FA7D71694}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
