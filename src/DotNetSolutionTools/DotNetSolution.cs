@@ -61,7 +61,8 @@ namespace DotNetSolutionTools
 
         public IDotNetProjectInstance GetProjectInstanceForProjectFile(string absolutePath)
         {
-            return AllProjects.SingleOrDefault(p => p.ProjectFileAbsolutePath == absolutePath);
+            var target = absolutePath.ToLower();
+            return AllProjects.SingleOrDefault(p => p.ProjectFileAbsolutePath.ToLower() == target);
         }
 
         public IEnumerable<IDotNetProjectInstance> GetProjectsUnderSolutionFolder(IDotNetSolutionFolder solutionFolder)

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using Microsoft.Build.Evaluation;
 using Microsoft.DotNet.Cli.Sln.Internal;
@@ -17,13 +19,16 @@ namespace DotNetSolutionTools
         IEnumerable<IDotNetProjectInstance> ReferencedProjects { get; }
         IDotNetSolution Solution { get; }
         ProjectType ProjectType { get; }
+        IEnumerable<string> ReferenceProjectPaths { get; }
         void UpdateProjectAbsolutePath(string newAbsolutePath);
         void UpdatePathToReference(string oldAbsolutePath, string newAbsolutePath);
         void Save();
     }
 
+    [DebuggerDisplay("{DebuggerDisplay}")]
     public class DotNetProjectInstance : IDotNetProjectInstance
     {
+        private string DebuggerDisplay => $"{Path.GetFileName(_slnProject.FilePath)}";
         private readonly SlnProject _slnProject;
         private readonly Lazy<MsbuildProject> _msbuildProject;
 
@@ -46,7 +51,7 @@ namespace DotNetSolutionTools
         public string ProjectFileAbsolutePath => _slnProject.GetAbsolutePathToProjectFile();
         public string ProjectFileRelativePathFromSolution => PathUtility.GetRelativePath(_slnProject.FilePath, ProjectFileAbsolutePath);
 
-        private IEnumerable<IDotNetProjectInstance> GetReferencedProjects(string fromProjectLocation)
+        private IEnumerable<string> GetReferencedProjectPaths(string fromProjectLocation)
         {
             if (ProjectType.Class != ProjectClass.Buildable)
             {
@@ -57,10 +62,20 @@ namespace DotNetSolutionTools
             var includes = _msbuildProject.Value.GetProjectToProjectReferences()
                 .Select(r => r.Include)
                 .Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
-            
+
             var absolutePathIncludes = includes
                 .Select(relativePath => PathUtility.GetAbsolutePath(fromProjectLocation, relativePath))
                 .ToList();
+
+            foreach (var path in absolutePathIncludes)
+            {
+                yield return path;
+            }
+        }
+
+        private IEnumerable<IDotNetProjectInstance> GetReferencedProjects(string fromProjectLocation)
+        {
+            var absolutePathIncludes = GetReferencedProjectPaths(fromProjectLocation).ToList();
 
             var referencedProjects = absolutePathIncludes
                     .Select(absolutePath => Solution.GetProjectInstanceForProjectFile(absolutePath))
@@ -76,6 +91,8 @@ namespace DotNetSolutionTools
         }
 
         public IEnumerable<IDotNetProjectInstance> ReferencedProjects => GetReferencedProjects(ProjectFileAbsolutePath);
+
+        public IEnumerable<string> ReferenceProjectPaths => GetReferencedProjectPaths(ProjectFileAbsolutePath);
         public IDotNetSolution Solution { get; }
         public ProjectType ProjectType { get; }
 

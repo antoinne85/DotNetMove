@@ -36,6 +36,8 @@ namespace DotNetSolutionTools
             .ToList();
 
 
+        public IEnumerable<string> ReferenceProjectPaths => throw new NotImplementedException();
+
         public string ProjectName => _projectInstance.ProjectName;
         public string ProjectFileAbsolutePath => _projectInstance.ProjectFileAbsolutePath;
         public string ProjectFileRelativePathFromSolution => _projectInstance.ProjectFileRelativePathFromSolution;
