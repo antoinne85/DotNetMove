@@ -50,27 +50,42 @@ namespace DotNetCobble
     {
         static int Main(string[] args)
         {
-            return Parser.Default.ParseArguments<ProjectOptions>(args)
+            return Parser.Default.ParseArguments<ProjectOptions, FolderOptions>(args)
                 .MapResult(
                     (ProjectOptions o) => CobbleFromProject(o),
+                    (FolderOptions f) => CobbleFromFolder(f),
                     (errs) => 1);
         }
 
-        private static int CobbleFromProject(ProjectOptions projectOptions)
+        private static int CobbleFromFolder(FolderOptions folderOptions)
         {
-            var csproj = FindCsprojFullPath(projectOptions.Project);
+            var initialCsprojFiles = FindCsprojFiles(folderOptions.TargetFolder);
+            return Cobble(initialCsprojFiles);
+        }
 
-            var dir = Path.GetDirectoryName(csproj);
-            Directory.SetCurrentDirectory(dir);
-            var file = Path.GetFileNameWithoutExtension(csproj);
-            var slnFile = $"{file}.sln";
-            ProcessProxy.RunCommands(new []
+        private static IReadOnlyList<string> FindCsprojFiles(string folder)
+        {
+            if(string.IsNullOrWhiteSpace(folder))
             {
-                $"dotnet new sln -n {file}",
-                $"dotnet sln ./{slnFile} add {csproj}"
-            });
+                folder = Directory.GetCurrentDirectory();
+            }
 
-            var sln = new DotNetSolution(Path.Combine(dir,slnFile));
+            var csprojFiles = FindCsprojFilesInFolder(folder);
+            return csprojFiles;
+        }
+
+        private static int Cobble(IReadOnlyList<string> csprojFullPaths)
+        {
+            var dir = Directory.GetCurrentDirectory();
+            var file = "MagicSolution";
+            var slnFile = $"{file}.sln";
+
+            var commands = csprojFullPaths.Select(p => $"dotnet sln ./{slnFile} add {p}").ToList();
+            commands.Insert(0, $"dotnet new sln -n {file}");
+
+            ProcessProxy.RunCommands(commands);
+
+            var sln = new DotNetSolution(Path.Combine(dir, slnFile));
             var toProcess = new HashSet<IDotNetProjectInstance>();
             var existing = sln.AllProjects.First().ProjectFileAbsolutePath;
             toProcess.Add(sln.AllProjects.First());
@@ -89,7 +104,7 @@ namespace DotNetCobble
             while (toAddProjectFiles.Count > 0)
             {
                 var currentProjectFile = toAddProjectFiles.First();
-                
+
                 ProcessProxy.RunCommands(new[]
                 {
                     $"dotnet sln ./{slnFile} add {currentProjectFile}"
@@ -115,8 +130,21 @@ namespace DotNetCobble
                 toAddProjectFiles.Remove(currentProjectFile);
             }
 
-
+            var initialProjects = new HashSet<string>(csprojFullPaths.Select(p => p.ToLower()));
+            var projectsToPutInFolder = sln.AllProjects.Where(p => !initialProjects.Contains(p.ProjectFileAbsolutePath.ToLower())).ToList();
+            var dependenciesFolder = sln.GetOrCreateSolutionFolder("Dependencies");
+            foreach(var project in projectsToPutInFolder)
+            {
+                sln.AddProjectToSolutionFolder(project, dependenciesFolder);
+            }
+            sln.Save();
             return 0;
+        }
+
+        private static int CobbleFromProject(ProjectOptions projectOptions)
+        {
+            var csproj = FindCsprojFullPath(projectOptions.Project);
+            return Cobble(new List<string> { csproj });
         }
 
         private static string FindCsprojFullPath(string targetProject)
@@ -135,10 +163,16 @@ namespace DotNetCobble
                 }
             }
 
-            var csprojFiles = Directory.EnumerateFiles(pwd, "*.csproj", SearchOption.AllDirectories).ToList();
+            var csprojFiles = FindCsprojFilesInFolder(pwd);
             csprojFiles = csprojFiles.Where(f => Path.GetFileNameWithoutExtension(f) == targetProject).ToList();
 
             return csprojFiles.SingleOrDefault();
+        }
+
+        private static IReadOnlyList<string> FindCsprojFilesInFolder(string folder)
+        {
+            var csprojFiles = Directory.EnumerateFiles(folder, "*.csproj", SearchOption.AllDirectories).ToList();
+            return csprojFiles;
         }
     }
 
@@ -148,5 +182,13 @@ namespace DotNetCobble
         [Option('p', "project", Required = true,
             HelpText = "The path to the folder or .csproj file for a project.")]
         public string Project { get; set; }
+    }
+
+    [Verb("folder", HelpText = "Cobbles together a solution from all projects in a particular folder.")]
+    class FolderOptions
+    {
+        [Option('t', "target", Required = false,
+            HelpText = "The path to the folder or .csproj file for a project.")]
+        public string TargetFolder { get; set; }
     }
 }
