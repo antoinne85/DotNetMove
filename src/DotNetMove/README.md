@@ -1,17 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+# DotNetMove
+A dotnet tool for moving projects around on disk or within a solution while automatically updating solutions and project references.
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
-    <Version>0.2.0.0</Version>
-    <Authors>Anthony Compton</Authors>
-    <Company>Anthony Compton</Company>
-    <PackageTags>dotnet tool,dotnet cobble,create solution</PackageTags>
-    <PackageReleaseNotes>This first release has several limitations, among them:
-* It can only operate on `.csproj` files.
-* You cannot control the filename of the solution file that gets created (you can rename it afterwards, though).
-* You cannot control the behavior around solution folders or manipulate the solution structure as part of the tool.</PackageReleaseNotes>
-    <Description>A dotnet tool for moving projects around on disk or within a solution while automatically updating solutions and project references.
+### Description
+Because .NET Project files use relative paths for specifying their project dependencies, move a project around on disk can be time consuming and error prone. You have to update not only the relative paths to the projects it references, but also the relative paths of other projects that reference the moved project.
+
+DotNetMove simplifies that by providing simple command-line tooling for moving a project around on-disk (or within a solution) while properly maintaining the relative paths of both the moved project as well as the projects that reference it.
 
 ## To Install
 `dotnet tool install -g DotNetMove`
@@ -54,16 +47,9 @@ If it does, it will then modify the solution to place that project inside of the
 This form works in a similar fashion to the above usage, except this one will find all solution files under the current folder (and sub-folders) and update all of those that reference the target project.
 
 ##### Help
-Executing `dotnet move`, `dotnet move solution` or `dotnet move disk` with no arguments will provide additional help.</Description>
-    <PackageLicenseUrl>https://github.com/antoinne85/DotNetMove/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/antoinne85/DotNetMove</PackageProjectUrl>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <FileVersion>0.2.0.0</FileVersion>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.3.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DotNetSolutionTools\DotNetSolutionTools.csproj" />
-  </ItemGroup>
-</Project>
+Executing `dotnet move`, `dotnet move solution` or `dotnet move disk` with no arguments will provide additional help.
+
+## Limitations
+This first release has several limitations:
+* It can only move `.csproj` files.
+* It will not function correctly if your project reference paths and paths on disk have casing differences.

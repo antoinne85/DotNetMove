@@ -1,17 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+# DotNetCobble
+A dotnet tool for cobbling together a solution file from a set of target projects that includes all of their project dependencies.
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
-    <Version>0.2.0.0</Version>
-    <Authors>Anthony Compton</Authors>
-    <Company>Anthony Compton</Company>
-    <PackageTags>dotnet tool,dotnet cobble,create solution</PackageTags>
-    <PackageReleaseNotes>This first release has several limitations, among them:
-* It can only operate on `.csproj` files.
-* You cannot control the filename of the solution file that gets created (you can rename it afterwards, though).
-* You cannot control the behavior around solution folders or manipulate the solution structure as part of the tool.</PackageReleaseNotes>
-    <Description>A dotnet tool for moving projects around on disk or within a solution while automatically updating solutions and project references.
+### Description
+Sometimes we find ourselves working in a solution that has many projects and complicated dependency graphs when we could get better performance out of Visual Studio and third party plugins if the solution were much smaller. However, Visual Studio has the curious quirk that, while `dotnet build` is fully capable of building a project along with its dependencies, Visual Studio will fail if any project dependency isn't present in the currently loaded solution. Typically, crafting a one-off solution for a particular project to ease these pain points is time-consuming as you must first determine your entire project dependency graph for the target project (or set of projects) and then add them one-at-a-time to the solution.
+
+DotNetCobble simplifies that by providing simple command-line tooling for creating a solution file from a target project (or folder of projects) that contains the target project(s) as well as all of their project dependencies.
+
+This is particularly useful in an microservices environment where core foundational projects are used uniformly across many domains, allowing you to keep (or create) one large solution to perform large-scale refactorings or, if you already have that, create smaller solution files for more nimble development.
 
 ## To Install
 `dotnet tool install -g DotNetMove`
@@ -54,16 +49,10 @@ If it does, it will then modify the solution to place that project inside of the
 This form works in a similar fashion to the above usage, except this one will find all solution files under the current folder (and sub-folders) and update all of those that reference the target project.
 
 ##### Help
-Executing `dotnet move`, `dotnet move solution` or `dotnet move disk` with no arguments will provide additional help.</Description>
-    <PackageLicenseUrl>https://github.com/antoinne85/DotNetMove/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/antoinne85/DotNetMove</PackageProjectUrl>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <FileVersion>0.2.0.0</FileVersion>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.3.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DotNetSolutionTools\DotNetSolutionTools.csproj" />
-  </ItemGroup>
-</Project>
+Executing `dotnet move`, `dotnet move solution` or `dotnet move disk` with no arguments will provide additional help.
+
+## Limitations
+This first release has several limitations, among them:
+* It can only operate on `.csproj` files.
+* You cannot control the filename of the solution file that gets created (you can rename it afterwards, though).
+* You cannot control the behavior around solution folders or manipulate the solution structure as part of the tool.
